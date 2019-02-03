@@ -21,7 +21,7 @@ def generate_grouped_data(num_coef=100, n=200, sig=1, m=40, tau=1, beta=1.5):
 def generate_series(theta):
     N = len(theta)
     X = np.arange(0, 1, 0.01)
-    Y = [np.sum(theta[:N // 2] * np.cos(2 * np.pi * (np.arange(1, N // 2 + 1, 1) * x)))
+Y = [np.sum(theta[:N // 2] * np.cos(2 * np.pi * (np.arange(1, N // 2 + 1, 1) * x)))
          + np.sum(theta[N // 2:] * np.sin(2 * np.pi * (np.arange(1, N // 2 + 1, 1) * x))) for x in X]
     return X,Y
 
