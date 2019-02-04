@@ -30,4 +30,10 @@ def generate_theta(num_coeff = 1000):
         np.arange(1.0,N+1.0,1.0))**1.5 
     return theta
 
+def generate_alternate_series(theta):
+    N = len(theta)
+    X = np.arange(0,1,1/len(theta))
+    Y = [np.sum(theta * np.cos(np.pi * (np.arange(1.0,N+1.0,1.0) - 0.5) * x)) for x in X]
+    return X,Y 
+
 
