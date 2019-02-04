@@ -4,6 +4,7 @@ from time import  sleep
 import tensorflow as tf
 import numpy as np
 
+
 FLAGS = None
 
 
@@ -20,33 +21,18 @@ def main(_):
                              task_index=FLAGS.task_index)
 
     if FLAGS.job_name == "ps":
-        with tf.device("/job:ps/task:0"):
-            var = tf.Variable([0.0,0.0], name='var')
         sess = tf.Session(target=server.target)
         sess.run(tf.global_variables_initializer())
         server.join()
 
-
+    # worker specific logic
     elif FLAGS.job_name == "worker":
+        # sess = tf.Session(target=server.target)
+        # while any(sess.run(tf.report_uninitialized_variables())):
+        #     print("Worker %d: waiting for variable initialization..." % FLAGS.task_index)
+        #     sleep(1.0)
 
-        # Assigns ops to the local worker by default.
-        with tf.device(tf.train.replica_device_setter(
-                worker_device="/job:worker/task:%d" % FLAGS.task_index,
-                cluster=cluster)):
-            with tf.device("/job:ps/task:0"):
-                var = tf.Variable([0.0, 0.0], name='var')
-
-            sess = tf.Session(target=server.target)
-            sess.run(tf.global_variables_initializer())
-            print('Worker begin update')
-            for _ in range(1000):
-                print('Worker {0}'.format(FLAGS.task_index*2-1))
-                if FLAGS.task_index == 0:
-                    sess.run(var.assign_add([0, FLAGS.task_index*2-1 + FLAGS.task_index*3], use_locking=True))
-                else:
-                    sess.run(var.assign_add([FLAGS.task_index * 2 - 1 + FLAGS.task_index * 3,0], use_locking=True))
-                print(sess.run(var))
-        print('Worker blocking')
+        server.start()
         server.join()
 
 

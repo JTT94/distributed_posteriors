@@ -19,7 +19,7 @@ def generate_grouped_data(signal, n=200, sig=1, m=40):
 
 def generate_series(theta):
     N = len(theta)
-    X = np.arange(0, 1, 0.01)
+    X = np.arange(0, 1, 1/len(theta))
     Y = [np.sum(theta[:N // 2] * np.cos(2 * np.pi * (np.arange(1, N // 2 + 1, 1) * x)))
          + np.sum(theta[N // 2:] * np.sin(2 * np.pi * (np.arange(1, N // 2 + 1, 1) * x))) for x in X]
     return X,Y
