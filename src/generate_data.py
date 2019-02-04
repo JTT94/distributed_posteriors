@@ -24,4 +24,10 @@ def generate_series(theta):
          + np.sum(theta[N // 2:] * np.sin(2 * np.pi * (np.arange(1, N // 2 + 1, 1) * x))) for x in X]
     return X,Y
 
+def generate_theta(num_coeff = 1000):
+    N = num_coeff
+    theta = (0.21+np.cos(np.arange(1.0,N+1.0,1.0)) * 0.205)  / (
+        np.arange(1.0,N+1.0,1.0))**1.5 
+    return theta
+
 
