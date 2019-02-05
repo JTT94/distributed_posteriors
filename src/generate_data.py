@@ -4,13 +4,13 @@ import numpy as np
 
 
 def sample_prior(num_coef=200, tau=1, beta=1.5):
-    theta = tau * (np.random.random(num_coef) * 2 - 1) / (np.arange(1, num_coef + 1, 1) ** (beta + 0.5))
+    theta = np.sqrt(tau) * (np.random.normal(size=num_coef)) / (np.arange(1, num_coef + 1, 1) ** (beta + 0.5))
     return theta
 
 
 def generate_data_from_signal(theta, sig, m, n):
     noise_sig = np.sqrt(sig**2*m/n)
-    return theta + noise_sig*np.random.random(len(theta))
+    return theta + noise_sig*np.random.normal(size=len(theta))
 
 
 def generate_grouped_data(signal, n=200, sig=1, m=40):
@@ -24,11 +24,13 @@ def generate_series(theta):
          + np.sum(theta[N // 2:] * np.sin(2 * np.pi * (np.arange(1, N // 2 + 1, 1) * x))) for x in X]
     return X,Y
 
+
 def generate_theta(num_coeff = 1000):
     N = num_coeff
     theta = (0.21+np.cos(np.arange(1.0,N+1.0,1.0)) * 0.205)  / (
         np.arange(1.0,N+1.0,1.0))**1.5 
     return theta
+
 
 def generate_alternate_series(theta):
     N = len(theta)
