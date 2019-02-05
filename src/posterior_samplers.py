@@ -33,4 +33,4 @@ def wasserstein_coefs(y_j, n, sig, alpha):
 
 def normal_sampler(mean_vec, var_vec):
         dist = tfd.MultivariateNormalDiag(loc = mean_vec, scale_diag = np.sqrt(var_vec))
-        return dist.sample()
+    return dist.sample()
