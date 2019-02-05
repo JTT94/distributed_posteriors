@@ -34,3 +34,10 @@ def wasserstein_coefs(y_j, n, sig, alpha):
 def normal_sampler(mean_vec, var_vec):
     dist = tfd.MultivariateNormalDiag(loc = mean_vec, scale_diag = np.sqrt(var_vec))
     return dist.sample()
+
+def make_1D_trunc_gauss(n, n_sig, lb, ub, mu, sig):
+    x = np.arange(lb, ub, (ub-lb)/n)
+    normaliser = lb if mu<0 else ub # just so to avoid overflow
+    h = np.exp(-(x - mu)**2 *n_sig/ (2 * sig**2) + (mu-normaliser)**2 * n_sig/ (2 * sig**2))
+    return h/h.sum()
+    
