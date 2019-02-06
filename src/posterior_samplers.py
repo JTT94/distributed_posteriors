@@ -34,18 +34,12 @@ def wasserstein_coefs(y_j, n, sig, alpha):
 def normal_sampler(mean_vec, var_vec):
     dist = tfd.MultivariateNormalDiag(loc = mean_vec, scale_diag = np.sqrt(var_vec))
     return dist.sample()
-
-def make_1D_trunc_gauss(n, n_sig, lb, ub, mu, sig):
-    x = np.linspace(lb, ub, n)
-    normaliser = x[np.argmin(np.abs(x-mu))] # just so to avoid overflow
-    h = np.exp(-(x - mu)**2 *n_sig/ (2 * sig**2) + (mu-normaliser)**2 * n_sig/ (2 * sig**2))
-    return h/h.sum()
     
-def Bary_generator_unif(theta, n_bins=100, n_coef=1000, beta=1, n=4800, reg=1e-2, sig=1):
+def Bary_generator_unif(theta, n_bins=100, n_coef=1000, beta=1, n=4800, reg=1e-2, sig=1, tau=1):
     bary_list = []
     for i in range(n_coef):
-        lb=-0.5 * (i+1)**(-1-2*beta) 
-        ub = 0.5*(i+1)**(-1-2*beta)
+        lb=-0.5 * tau*(i+1)**(-1-2*beta) 
+        ub = 0.5*tau*(i+1)**(-1-2*beta)
         i_observations = theta[i]
         hist_array= np.empty((0,n_bins))
         for num in i_observations:
@@ -53,7 +47,7 @@ def Bary_generator_unif(theta, n_bins=100, n_coef=1000, beta=1, n=4800, reg=1e-2
                                             ub=ub , mu=num, sig = sig)
             hist_array = np.vstack((hist_array, temp_hist))
             #hist_array = hist_array[1:,]
-            A = hist_array.T
+        A = hist_array.T
         M = ot.utils.dist0(n_bins)
 
         M /= M.max()
@@ -62,11 +56,17 @@ def Bary_generator_unif(theta, n_bins=100, n_coef=1000, beta=1, n=4800, reg=1e-2
         bary_list.append(bary_wass)
     return bary_list
 
-def Bary_list_sampler(Bary_list, beta, n_bins):
+def make_1D_trunc_gauss(n, lb, ub, mu, sig):
+    # take a lb, ub, mu and sig and return histogram for the pdf of the relevant gaussian (n bins
+    x = np.linspace(lb, ub, n)
+    normaliser = x[np.argmin(np.abs(x-mu))] # just so to avoid overflow
+    h = np.exp(-(x - mu)**2 /(2*sig**2) + (mu-normaliser)**2 / (2 * sig**2))
+    return h/h.sum()
+
+def Bary_list_sampler(Bary_list, bound_list, beta, n_bins):
     sample = np.zeros(len(Bary_list))
     for i in range(len(Bary_list)):
-        lb=-0.5 * (i+1)**(-1-2*beta) 
-        ub = 0.5*(i+1)**(-1-2*beta)
+        lb, ub = bound_list[i]
         x = np.linspace(lb, ub, n_bins)
         a = np.random.choice(x, p = Bary_list[i])
         sample[i] = a
@@ -74,13 +74,14 @@ def Bary_list_sampler(Bary_list, beta, n_bins):
 
 def Bary_generator_gauss(theta, n_bins=100, n_coef=1000, beta=1, n=4800, reg=1e-2, sig=1):
     bary_list = []
+    bound_list = []
     for i in range(n_coef):
         i_observations = theta[i]
-        lb = i_observations.min() - 2 * sig/np.sqrt(n + sig**2*i**(1+2*beta))
-        ub = i_observations.max() + 2 * sig/np.sqrt(n + sig**2*i**(1+2*beta))
+        lb = i_observations.min()*n/(n+sig**2*i**(1+2*beta)) - 2 * sig/np.sqrt(n + sig**2*i**(1+2*beta))
+        ub = i_observations.max()*n/(n+sig**2*i**(1+2*beta)) + 2 * sig/np.sqrt(n + sig**2*i**(1+2*beta))
         hist_array= np.empty((0,n_bins))
         for num in i_observations:
-            temp_hist = make_1D_trunc_gauss(n=n_bins, lb=lb , n_sig = 1, 
+            temp_hist = make_1D_trunc_gauss(n=n_bins, lb=lb , 
                                             ub=ub , mu=num*n/(n+sig**2*i**(1+2*beta)), 
                                             sig = sig/np.sqrt(n+sig**2*i**(1+2*beta)))
             hist_array = np.vstack((hist_array, temp_hist))
@@ -92,4 +93,5 @@ def Bary_generator_gauss(theta, n_bins=100, n_coef=1000, beta=1, n=4800, reg=1e-
             
         bary_wass = ot.bregman.barycenter(A, M, reg, weights=None)
         bary_list.append(bary_wass)
-    return bary_list
+        bound_list.append((lb, ub))
+    return bary_list, bound_list
